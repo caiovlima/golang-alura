@@ -12,7 +12,6 @@ func ExibeTodosAlunos(c *gin.Context) {
 	var alunos []models.Aluno
 	database.DB.Find(&alunos)
 	c.JSON(200, alunos)
-
 }
 
 func Saudacao(c *gin.Context) {
@@ -23,6 +22,12 @@ func Saudacao(c *gin.Context) {
 func CriaNovoAluno(c *gin.Context) {
 	var aluno models.Aluno
 	if err := c.ShouldBindJSON(&aluno); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"erro": err.Error()})
+		return
+	}
+
+	if err := models.ValidaDadosDeAluno(&aluno); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"erro": err.Error()})
 		return
@@ -59,7 +64,6 @@ func BuscaAlunoPorCPF(c *gin.Context) {
 	c.JSON(http.StatusOK, aluno)
 }
 
-
 func DeletaAluno(c *gin.Context) {
 	var aluno models.Aluno
 	id := c.Params.ByName("id")
@@ -85,6 +89,11 @@ func EditaAluno(c *gin.Context) {
 		return
 	}
 
+	if err := models.ValidaDadosDeAluno(&aluno); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"erro": err.Error()})
+		return
+	}
 	database.DB.Model(&aluno).UpdateColumns(aluno)
 	c.JSON(http.StatusOK, aluno)
 }
